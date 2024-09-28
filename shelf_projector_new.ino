@@ -58,87 +58,86 @@ unsigned long btn2_times_pressed = 0;
 
 
 void setup() {
-pinMode(7, OUTPUT); // Relay
-pinMode(8, OUTPUT); // Relay
-pinMode(2, OUTPUT); // Relay
-pinMode(3, OUTPUT); // Relay 
-pinMode(4, OUTPUT); // Relay
-pinMode(5, OUTPUT); // Relay
-pinMode(10, OUTPUT); // Relay
-pinMode(11, OUTPUT); // Relay
-pinMode(9, OUTPUT);
-pinMode(6, OUTPUT);
+  pinMode(7, OUTPUT); // Relay
+  pinMode(8, OUTPUT); // Relay
+  pinMode(2, OUTPUT); // Relay
+  pinMode(3, OUTPUT); // Relay 
+  pinMode(4, OUTPUT); // Relay
+  pinMode(5, OUTPUT); // Relay
+  pinMode(10, OUTPUT); // Relay
+  pinMode(11, OUTPUT); // Relay
+  pinMode(9, OUTPUT);
+  pinMode(6, OUTPUT);
 
-digitalWrite(6, LOW);
-digitalWrite(9, LOW);
-digitalWrite(7, HIGH); // Relay 
-digitalWrite(8, HIGH); // Relay
-digitalWrite(2, HIGH); // Relay
-digitalWrite(3, HIGH); // Relay
-digitalWrite(4, HIGH); // Relay
-digitalWrite(5, HIGH); // Relay
-digitalWrite(10, HIGH); // Relay 
-digitalWrite(11, HIGH); // Relay
+  digitalWrite(6, LOW);
+  digitalWrite(9, LOW);
+  digitalWrite(7, HIGH); // Relay 
+  digitalWrite(8, HIGH); // Relay
+  digitalWrite(2, HIGH); // Relay
+  digitalWrite(3, HIGH); // Relay
+  digitalWrite(4, HIGH); // Relay
+  digitalWrite(5, HIGH); // Relay
+  digitalWrite(10, HIGH); // Relay 
+  digitalWrite(11, HIGH); // Relay
 
-Serial.begin(9600);
+  Serial.begin(9600);
 
-IrReceiver.begin(IR_RECEIVE_PIN); //Start IR receiver
+  IrReceiver.begin(IR_RECEIVE_PIN); //Start IR receiver
 
-//Start Ethernet
-Ethernet.begin(mac, ip, gateway, subnet);
-server.begin();
-Serial.print("Server is at ");
-Serial.println(Ethernet.localIP());
+  //Start Ethernet
+  Ethernet.begin(mac, ip, gateway, subnet);
+  server.begin();
+  Serial.print("Server is at ");
+  Serial.println(Ethernet.localIP());
 
-//Check SD card Initialization
-if (!SD.begin(chipSelect)) {
-  Serial.println("initialization SD failed!");
-} 
-else {
-  Serial.println("initialization SD success!");  
-}
+  //Check SD card Initialization
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization SD failed!");
+  } 
+  else {
+    Serial.println("initialization SD success!");  
+  }
 
-//Check if we have file for storing data and variables
-if (!SD.exists("data.txt")) {
-  Serial.println("File data.dat doesn't exist. We'll create it.");
-  myFile = SD.open("data.txt",  FILE_WRITE);
-  myFile.close();
-}
+  //Check if we have file for storing data and variables
+  if (!SD.exists("data.txt")) {
+    Serial.println("File data.dat doesn't exist. We'll create it.");
+    myFile = SD.open("data.txt",  FILE_WRITE);
+    myFile.close();
+  }
 
-//Initialize the rtc object (date/time)
-rtc.begin();
+  //Initialize the rtc object (date/time)
+  rtc.begin();
 
-// The following lines can be uncommented to set the date and time
-//rtc.setDOW(WEDNESDAY);     // Set Day-of-Week to SUNDAY
-//rtc.setTime(19, 35, 00);     // Set the time to 12:00:00 (24hr format)
-//rtc.setDate(2, 8, 2023);   // Set the date to January 1st, 2014
+  // The following lines can be uncommented to set the date and time
+  //rtc.setDOW(WEDNESDAY);     // Set Day-of-Week to SUNDAY
+  //rtc.setTime(19, 35, 00);     // Set the time to 12:00:00 (24hr format)
+  //rtc.setDate(2, 8, 2023);   // Set the date to January 1st, 2014
 
-//EEPROM.update(ADDR, 1); //Here we can set value to EEPROM if need. For it just temporaly uncomment this line and set value
+  //EEPROM.update(ADDR, 1); //Here we can set value to EEPROM if need. For it just temporaly uncomment this line and set value
 
-//Print in serial cmd some data
-Serial.println(getLastState());
-Serial.println(currentTime());
-Serial.print("EEPROM value = ");
-Serial.println(EEPROM.read(ADDR));
+  //Print in serial cmd some data
+  Serial.println(getLastState());
+  Serial.println(currentTime());
+  Serial.print("EEPROM value = ");
+  Serial.println(EEPROM.read(ADDR));
 
+  // Optional device's details MQTT
+  device.setName("Automatic shelf");
+  device.setSoftwareVersion("1.0.0");
 
-// Optional device's details MQTT
-device.setName("Automatic shelf");
-device.setSoftwareVersion("1.0.0");
+  // Optional properties MQTT
+  buttonOpen.setIcon("mdi:boom-gate-up-outline");
+  buttonOpen.setName("Open");
+  buttonClose.setIcon("mdi:boom-gate-outline");
+  buttonClose.setName("Close");
 
-// Optional properties MQTT
-buttonOpen.setIcon("mdi:boom-gate-up-outline");
-buttonOpen.setName("Open");
-buttonClose.setIcon("mdi:boom-gate-outline");
-buttonClose.setName("Close");
+  // Press callbacks MQTT
+  buttonOpen.onCommand(onButtonCommand);
+  buttonClose.onCommand(onButtonCommand);
 
-// Press callbacks MQTT
-buttonOpen.onCommand(onButtonCommand);
-buttonClose.onCommand(onButtonCommand);
+  mqtt.begin(BROKER_ADDR); //Start MQTT
 
-mqtt.begin(BROKER_ADDR); //Start MQTT
-
-//checkShelfState(); //Check state of shelf. If it's not fully closed or opened (because of for example lost of power) then when power back we close shelf at first
+  //checkShelfState(); //Check state of shelf. If it's not fully closed or opened (because of for example lost of power) then when power back we close shelf at first
 }
 
 
